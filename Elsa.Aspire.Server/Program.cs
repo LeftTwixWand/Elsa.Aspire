@@ -71,16 +71,16 @@ builder.Services.AddElsa(elsa =>
 
     elsa.UseQuartz(quartz => quartz.UsePostgreSql(builder.Configuration.GetConnectionString("elsadb")!));
 
-    elsa.UseMassTransit(masstransit => 
+    elsa.UseMassTransit(masstransit =>
     {
         masstransit.UseRabbitMq(builder.Configuration.GetConnectionString("messaging")!,
-            rabbitMqFeature => rabbitMqFeature.ConfigureServiceBus = bus =>
+            rabbitMqFeature => rabbitMqFeature.ConfigureTransportBus = (context, bus) =>
             {
                 bus.PrefetchCount = 4;
                 bus.Durable = true;
                 bus.AutoDelete = false;
                 bus.ConcurrentMessageLimit = 32;
-                // etc. 
+                // etc.
             }
         );
     });
