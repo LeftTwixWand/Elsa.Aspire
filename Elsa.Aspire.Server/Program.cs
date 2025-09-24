@@ -25,11 +25,32 @@ builder.Services.AddTransient<IClaimsTransformation, KeycloakClaimsTransformatio
 
 builder.Services.AddElsa(elsa =>
 {
-    // Configure Management layer to use in-memory storage for testing
-    elsa.UseWorkflowManagement();
+    // Configure Management layer to use EF Core.
+    elsa.UseWorkflowManagement(management =>
+        management.UseEntityFrameworkCore( ef =>
+        ef.UsePostgreSql(builder.Configuration.GetConnectionString("elsadb")!)));
 
-    // Configure Runtime layer to use in-memory storage for testing
-    elsa.UseWorkflowRuntime();
+    // Configure Runtime layer to use EF Core.
+    elsa.UseWorkflowRuntime(runtime =>
+    {
+        runtime.UseEntityFrameworkCore(ef =>
+            ef.UsePostgreSql(builder.Configuration.GetConnectionString("elsadb")!));
+
+        runtime.UseDistributedRuntime();
+
+        runtime.DistributedLockProvider = _ =>
+            new PostgresDistributedSynchronizationProvider(builder.Configuration.GetConnectionString("elsadb")!,
+                options =>
+                {
+                    options.KeepaliveCadence(TimeSpan.FromMinutes(5));
+                    options.UseMultiplexing();
+                });
+    });
+
+    elsa.UseDistributedCache(distributedCaching =>
+    {
+        distributedCaching.UseMassTransit();
+    });
 
     // Expose Elsa API endpoints.
     elsa.UseWorkflowsApi();
@@ -45,8 +66,24 @@ builder.Services.AddElsa(elsa =>
         http.ConfigureHttpOptions = options => builder.Configuration.GetSection("Http").Bind(options);
     });
 
-    // Use timer activities with in-memory scheduler for testing
-    elsa.UseScheduling();
+    // Use timer activities.
+    elsa.UseScheduling(scheduling => scheduling.UseQuartzScheduler());
+
+    elsa.UseQuartz(quartz => quartz.UsePostgreSql(builder.Configuration.GetConnectionString("elsadb")!));
+
+    elsa.UseMassTransit(masstransit =>
+    {
+        masstransit.UseRabbitMq(builder.Configuration.GetConnectionString("messaging")!,
+            rabbitMqFeature => rabbitMqFeature.ConfigureTransportBus = (context, bus) =>
+            {
+                bus.PrefetchCount = 4;
+                bus.Durable = true;
+                bus.AutoDelete = false;
+                bus.ConcurrentMessageLimit = 32;
+                // etc.
+            }
+        );
+    });
 
     // Register custom activities from the application, if any.
     elsa.AddActivitiesFrom<Program>();
@@ -81,7 +118,7 @@ app.UseAuthorization();
 app.UseWorkflowsApi(); // Use Elsa API endpoints.
 app.UseWorkflows(); // Use Elsa middleware to handle HTTP requests mapped to HTTP Endpoint activities.
 app.UseWorkflowsSignalRHubs(); // Optional SignalR integration. Elsa Studio uses SignalR to receive real-time updates from the server.
-app.MapControllers(); // Map controller endpoints. 
+app.MapControllers(); // Map controller endpoints.
 
 
 app.Run();

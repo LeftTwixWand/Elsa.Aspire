@@ -29,7 +29,13 @@
       "Bash(wmic:*)",
       "Bash(tasklist:*)",
       "Bash(cmd /c:*)",
-      "Bash(git clean:*)"
+      "Bash(git clean:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet test:*)",
+      "Bash(git restore:*)",
+      "Bash(git rm:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
