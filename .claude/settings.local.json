@@ -9,7 +9,14 @@
       "Bash(dotnet list:*)",
       "Bash(findstr:*)",
       "Bash(dotnet add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebSearch",
+      "WebFetch(domain:v3.elsaworkflows.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:stackoverflow.com)",
+      "WebFetch(domain:medium.com)"
     ],
     "deny": [],
     "ask": []
