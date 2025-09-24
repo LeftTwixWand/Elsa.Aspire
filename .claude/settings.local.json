@@ -23,7 +23,13 @@
       "Bash(find:*)",
       "WebFetch(domain:docs.elsaworkflows.io)",
       "Bash(dotnet restore:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(cat:*)",
+      "Bash(netstat:*)",
+      "Bash(wmic:*)",
+      "Bash(tasklist:*)",
+      "Bash(cmd /c:*)",
+      "Bash(git clean:*)"
     ],
     "deny": [],
     "ask": []

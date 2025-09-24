@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Elsa.Workflows.Runtime;
-using Elsa.Workflows.Runtime.Contracts;
+using Elsa.Workflows;
+using Elsa.Workflows.Activities;
+using Elsa.Workflows.State;
 
 namespace Elsa.Aspire.Server.Controllers;
 
@@ -12,11 +13,8 @@ namespace Elsa.Aspire.Server.Controllers;
 [Route("api/[controller]")]
 public class WorkflowController : ControllerBase
 {
-    private readonly IWorkflowRuntime _workflowRuntime;
-
-    public WorkflowController(IWorkflowRuntime workflowRuntime)
+    public WorkflowController()
     {
-        _workflowRuntime = workflowRuntime;
     }
 
     /// <summary>
@@ -79,18 +77,44 @@ public class WorkflowController : ControllerBase
     }
 
     /// <summary>
-    /// Test workflow execution endpoint
+    /// Test workflow execution endpoint - Creates and executes a simple workflow
     /// </summary>
     [HttpGet("test")]
-    public IActionResult TestWorkflowExecution()
+    public async Task<IActionResult> TestWorkflowExecution([FromServices] IWorkflowRunner workflowRunner)
     {
-        return Ok(new
+        try
         {
-            message = "Test workflow executed successfully!",
-            timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " UTC",
-            workflowId = "TestWorkflow",
-            status = "completed",
-            executedVia = "Controller endpoint (simulated workflow)"
-        });
+            // Create a simple workflow programmatically
+            var workflow = new Sequence
+            {
+                Activities =
+                {
+                    new WriteLine("Hello from a dynamically created workflow!")
+                }
+            };
+
+            // Execute the workflow directly
+            var result = await workflowRunner.RunAsync(workflow);
+
+            return Ok(new
+            {
+                message = "Real workflow executed successfully!",
+                workflowId = result.WorkflowState.Id,
+                status = result.WorkflowState.Status.ToString(),
+                subStatus = result.WorkflowState.SubStatus.ToString(),
+                isFinished = result.WorkflowState.Status == WorkflowStatus.Finished,
+                timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " UTC",
+                executedVia = "Direct workflow execution"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new
+            {
+                error = "Failed to execute workflow",
+                details = ex.Message,
+                timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " UTC"
+            });
+        }
     }
 }
