@@ -42,7 +42,7 @@ var backendApiConfig = new BackendApiConfig
 builder.Services.AddCore();
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
 builder.Services.AddRemoteBackend(backendApiConfig);
-builder.Services.AddLoginModule();
+// builder.Services.AddLoginModule(); // Commented out - causes IRefreshTokenService dependency issue
 builder.Services.AddKeycloakModule();
 builder.Services.AddDashboardModule();
 builder.Services.AddWorkflowsModule();
