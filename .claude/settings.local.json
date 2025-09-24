@@ -16,7 +16,14 @@
       "WebFetch(domain:v3.elsaworkflows.io)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:stackoverflow.com)",
-      "WebFetch(domain:medium.com)"
+      "WebFetch(domain:medium.com)",
+      "Bash(timeout:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:docs.elsaworkflows.io)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []
