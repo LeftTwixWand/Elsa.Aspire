@@ -6,6 +6,7 @@ using Medallion.Threading.Postgres;
 using Microsoft.AspNetCore.Authorization;
 using Elsa.Workflows.Runtime.Distributed.Extensions;
 using Microsoft.AspNetCore.Authentication;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,6 +104,21 @@ builder.Services.AddCors(cors => cors
 // Add Controllers for custom API endpoints.
 builder.Services.AddControllers();
 
+// Configure OpenAPI
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info = new()
+        {
+            Title = "Elsa Workflows API",
+            Version = "v1",
+            Description = "API for managing and executing Elsa workflows with comprehensive documentation for testing workflows, managing definitions, and monitoring execution status."
+        };
+        return Task.CompletedTask;
+    });
+});
+
 // Add Health Checks.
 builder.Services.AddHealthChecks();
 
@@ -112,6 +128,19 @@ var app = builder.Build();
 // Configure web application's middleware pipeline.
 app.UseCors();
 app.MapHealthChecks("/health");
+
+// Map OpenAPI endpoint
+app.MapOpenApi();
+
+// Configure Scalar API documentation UI at /scalar
+app.MapScalarApiReference(options =>
+{
+    options
+        .WithTitle("Elsa Workflows API")
+        .WithTheme(ScalarTheme.Purple)
+        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+});
+
 app.UseRouting(); // Required for SignalR.
 app.UseAuthentication();
 app.UseAuthorization();
